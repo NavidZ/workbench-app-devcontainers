@@ -24,6 +24,10 @@
       "cloud": "${templateOption:cloud}",
       "username": "abc",
       "userHomeDir": "/config"
+    },
+    "./.devcontainer/features/wb-mcp-server": {
+      "username": "abc",
+      "userHomeDir": "/config"
     }
   },
   "remoteUser": "root",
