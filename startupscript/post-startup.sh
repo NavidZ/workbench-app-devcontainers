@@ -5,6 +5,9 @@ set -o nounset
 set -o pipefail
 set -o xtrace
 
+echo "=== POST-STARTUP.SH STARTING ==="
+echo "Arguments: $@"
+
 if [[ $# -ne 4 ]]; then
   echo "Usage: $0 user workDirectory <gcp/aws> <true/false>"
   exit 1
@@ -19,20 +22,27 @@ export CLOUD
 readonly LOG_IN="${4}"
 export LOG_IN
 
+echo "=== VARIABLES SET: USER=${USER_NAME}, WORK_DIR=${WORK_DIRECTORY}, CLOUD=${CLOUD}, LOGIN=${LOG_IN} ==="
+
 # Gets absolute path of the script directory.
 # Because the script sometimes cd to other directoy (e.g. /tmp),
 # absolute path is more reliable.
+echo "=== DETERMINING SCRIPT DIRECTORY ==="
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 readonly SCRIPT_DIR
 export SCRIPT_DIR
 readonly CLOUD_SCRIPT_DIR="${SCRIPT_DIR}/${CLOUD}"
 export CLOUD_SCRIPT_DIR
+echo "=== SCRIPT_DIR=${SCRIPT_DIR}, CLOUD_SCRIPT_DIR=${CLOUD_SCRIPT_DIR} ==="
 #######################################
 # Emit a message with a timestamp
 #######################################
+echo "=== SOURCING emit.sh ==="
 source "${SCRIPT_DIR}/emit.sh"
 
+echo "=== SOURCING vm-metadata.sh from ${CLOUD_SCRIPT_DIR} ==="
 source "${CLOUD_SCRIPT_DIR}/vm-metadata.sh"
+echo "=== SOURCED SCRIPTS SUCCESSFULLY ==="
 
 readonly RUN_AS_LOGIN_USER="sudo -u ${USER_NAME} bash -l -c"
 export RUN_AS_LOGIN_USER
@@ -43,9 +53,11 @@ export STATUS_ATTRIBUTE
 readonly MESSAGE_ATTRIBUTE="startup_script/message"
 export MESSAGE_ATTRIBUTE
 
+echo "=== GETTING PRIMARY GROUP FOR USER ${USER_NAME} ==="
 USER_PRIMARY_GROUP="$(id --group --name "${USER_NAME}")"
 readonly USER_PRIMARY_GROUP
 export USER_PRIMARY_GROUP
+echo "=== USER_PRIMARY_GROUP=${USER_PRIMARY_GROUP} ==="
 readonly USER_BASH_COMPLETION_DIR="${WORK_DIRECTORY}/.bash_completion.d"
 export USER_BASH_COMPLETION_DIR
 readonly USER_HOME_LOCAL_SHARE="${WORK_DIRECTORY}/.local/share"
@@ -80,16 +92,20 @@ exec > >(tee -a "${POST_STARTUP_OUTPUT_FILE}")  # Append output to the file and 
 exec 2> >(tee -a "${POST_STARTUP_OUTPUT_FILE}" >&2)  # Append errors to the file and print to terminal
 
 # The apt package index may not be clean when we run; resynchronize
+echo "=== INSTALLING PACKAGES ==="
 if type apk > /dev/null 2>&1; then
+  echo "=== USING APK PACKAGE MANAGER ==="
   apk update
   apk add --no-cache jq curl fuse tar wget
 elif type apt-get > /dev/null 2>&1; then
+  echo "=== USING APT PACKAGE MANAGER ==="
   apt-get update
   apt install -y jq curl fuse tar wget
 else
   >&2 echo "ERROR: Unable to find a supported package manager"
   exit 1
 fi
+echo "=== PACKAGES INSTALLED SUCCESSFULLY ==="
 
 
 # Create the target directories for installing into the HOME directory
