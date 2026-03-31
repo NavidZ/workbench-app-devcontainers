@@ -1,11 +1,13 @@
 services:
   app:
     container_name: "application-server"
-    image: "us-central1-docker.pkg.dev/wb-beamish-lettuce-5001/shared-repo/base-image:2.6.0"
+    image: "us-central1-docker.pkg.dev/wb-beamish-lettuce-5001/shared-repo/base-image-protected:2.6.0"
     restart: always
-    entrypoint: /bin/bash
+    entrypoint: /opt/CrowdStrike/rootfs/bin/falcon-entrypoint
     command: >
-      -c "/usr/bin/workstation-startup || true; runuser user -c 'sleep infinity'"
+      /bin/bash -c "/usr/bin/workstation-startup || true; runuser user -c 'sleep infinity'"
+    environment:
+      - CONTAINER_APP_NAME=super-vscode-app
     volumes:
       - .:/workspace:cached
       - work:/home/user:cached
@@ -19,8 +21,10 @@ services:
       - /dev/fuse
     security_opt:
       - apparmor=unconfined
+
 networks:
   app-network:
     external: true
+
 volumes:
   work:
