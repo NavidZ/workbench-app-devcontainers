@@ -1,13 +1,38 @@
 services:
+  falcon-init:
+    container_name: "falcon-init"
+    image: "us-central1-docker.pkg.dev/wb-beamish-lettuce-5001/shared-repo/navid-falcon-node-sensor:latest"
+    privileged: true
+    pid: host
+    network_mode: host
+    ipc: host
+    entrypoint: /opt/CrowdStrike/falcon-daemonset-init
+    command: ["-i"]
+    volumes:
+      - /opt/CrowdStrike/falconstore:/opt/CrowdStrike/falconstore
+
+  falcon-sensor:
+    container_name: "falcon-sensor"
+    image: "us-central1-docker.pkg.dev/wb-beamish-lettuce-5001/shared-repo/navid-falcon-node-sensor:latest"
+    privileged: true
+    pid: host
+    network_mode: host
+    ipc: host
+    userns_mode: host
+    restart: always
+    volumes:
+      - /opt/CrowdStrike/falconstore:/opt/CrowdStrike/falconstore
+    depends_on:
+      falcon-init:
+        condition: service_completed_successfully
+
   app:
     container_name: "application-server"
-    image: "us-central1-docker.pkg.dev/wb-beamish-lettuce-5001/shared-repo/base-image-protected:2.6.0"
+    image: "us-central1-docker.pkg.dev/wb-beamish-lettuce-5001/shared-repo/base-image:2.6.0"
     restart: always
-    entrypoint: /opt/CrowdStrike/rootfs/bin/falcon-entrypoint
+    entrypoint: /bin/bash
     command: >
-      /bin/bash -c "/usr/bin/workstation-startup || true; runuser user -c 'sleep infinity'"
-    environment:
-      - CONTAINER_APP_NAME=super-vscode-app
+      -c "/usr/bin/workstation-startup || true; runuser user -c 'sleep infinity'"
     volumes:
       - .:/workspace:cached
       - work:/home/user:cached
@@ -21,6 +46,8 @@ services:
       - /dev/fuse
     security_opt:
       - apparmor=unconfined
+    depends_on:
+      - falcon-sensor
 
 networks:
   app-network:
