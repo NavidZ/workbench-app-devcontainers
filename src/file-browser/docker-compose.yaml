@@ -1,0 +1,29 @@
+version: '2.4'
+services:
+  app:
+    container_name: "application-server"
+    image: "filebrowser/filebrowser:latest"
+    restart: always
+    user: "1000:1000"
+    volumes:
+      - .:/srv:cached
+      - filebrowser_db:/database
+      - filebrowser_config:/config
+    ports:
+      - '8080:80'
+    environment:
+      - FB_NOAUTH=true
+    networks:
+      - app-network
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - /dev/fuse
+    security_opt:
+      - apparmor:unconfined
+networks:
+  app-network:
+    external: true
+volumes:
+  filebrowser_db:
+  filebrowser_config:
