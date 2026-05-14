@@ -120,30 +120,13 @@ WB_MCP_BIN="/opt/wb-mcp-server/wb-mcp-server"
 PORT="${WB_MCP_PORT:-9242}"
 LOGFILE="/tmp/wb-mcp-server.log"
 
-# Source profile scripts so wb and other CLI tools are on PATH.
-# The server is launched from .bashrc which may not have a full login
-# environment, causing "wb: executable file not found in $PATH" errors.
-for f in /etc/profile.d/*.sh; do
-    # shellcheck disable=SC1090
-    [ -r "$f" ] && source "$f"
-done
-
-# Use a lockfile to prevent a race condition when .bashrc is sourced
-# simultaneously by multiple shells (common in devcontainers).
-LOCKFILE="/tmp/wb-mcp-server.lock"
-exec 9>"${LOCKFILE}"
-if ! flock -n 9; then
-    echo "wb-mcp-server start already in progress"
-    exit 0
-fi
-
 # Check if already running
 if pgrep -f "${WB_MCP_BIN} -http" > /dev/null; then
     echo "wb-mcp-server is already running"
     exit 0
 fi
 
-# Start server in background, inheriting the enriched PATH
+# Start server in background
 nohup "${WB_MCP_BIN}" -http -port "${PORT}" >> "${LOGFILE}" 2>&1 &
 echo "Started wb-mcp-server on port ${PORT} (PID: $!)"
 echo "Logs: ${LOGFILE}"
