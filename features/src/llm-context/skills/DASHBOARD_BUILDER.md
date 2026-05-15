@@ -203,7 +203,7 @@ def get_bigquery_data():
 def index():
     return render_template('index.html')
 
-@app.route('api/data')  # NO leading slash!
+@app.route('/api/data')  # NO leading slash!
 def get_data():
     try:
         data = get_bigquery_data()
@@ -211,7 +211,7 @@ def get_data():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('api/metadata')
+@app.route('/api/metadata')
 def get_metadata():
     try:
         data = get_bigquery_data()
