@@ -2866,7 +2866,11 @@ func handleCallTool(params CallToolParams) CallToolResult {
 	}
 
 	if err != nil {
-		return CallToolResult{Content: []ContentItem{{Type: "text", Text: fmt.Sprintf("Error: %s", err.Error())}}, IsError: true}
+		errorMsg := fmt.Sprintf("Command failed with %s", err.Error())
+		if output != "" {
+			errorMsg = fmt.Sprintf("%s:\n%s", errorMsg, output)
+		}
+		return CallToolResult{Content: []ContentItem{{Type: "text", Text: errorMsg}}, IsError: true}
 	}
 	return CallToolResult{Content: []ContentItem{{Type: "text", Text: output}}, IsError: false}
 }
