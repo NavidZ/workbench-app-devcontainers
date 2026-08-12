@@ -1,0 +1,38 @@
+# Aligns with Verily Workbench custom-app requirements:
+#   - container_name must be "application-server"
+#   - service joins the external "app-network"
+#   - FUSE capabilities so the post-startup hook can mount workspace resources
+services:
+  app:
+    container_name: "application-server"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    working_dir: /app
+    command: ["./start.sh"]
+    volumes:
+      - .:/workspace:cached
+      - work:/root
+    ports:
+      - 8080:8080
+    environment:
+      - GOOGLE_CLOUD_PROJECT
+      - GOOGLE_CLOUD_LOCATION
+    networks:
+      - app-network
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - /dev/fuse
+    security_opt:
+      - apparmor:unconfined
+
+networks:
+  # External network named "app-network" — Workbench creates it. For local
+  # testing run once: docker network create app-network
+  app-network:
+    external: true
+
+volumes:
+  work:
