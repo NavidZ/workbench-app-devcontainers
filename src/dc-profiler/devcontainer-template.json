@@ -1,0 +1,21 @@
+{
+  "id": "dc-metadata-autofill",
+  "version": "0.1.0",
+  "name": "Data Collection Profiler",
+  "description": "Pick a data collection you can edit, profile its BigQuery/GCS data, and use Gemini to suggest catalog metadata (description, data dictionary, sample queries, tags, and more) for review and one-click save.",
+  "options": {
+    "cloud": {
+      "type": "string",
+      "enum": ["gcp"],
+      "default": "gcp",
+      "description": "Cloud provider"
+    },
+    "login": {
+      "type": "string",
+      "proposals": ["true", "false"],
+      "default": "true",
+      "description": "Whether to log in to the Workbench CLI (required for this app)"
+    }
+  },
+  "platforms": ["GCP"]
+}
